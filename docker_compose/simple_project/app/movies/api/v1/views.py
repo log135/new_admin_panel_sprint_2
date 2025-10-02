@@ -16,7 +16,6 @@ class Roles(Enum):
 
 
 class FilmWorkApiMixin:
-    model = FilmWork
     http_method_names = ['get']
 
     def get_queryset(self):
@@ -27,10 +26,7 @@ class FilmWorkApiMixin:
 
         annotations['genres'] = ArrayAgg('genres__name', distinct=True)
 
-        return (self.model.objects.all()
-                .prefetch_related('genres', 'persons')
-                .values('id', 'title', 'description', 'creation_date', 'rating', 'type')
-                .annotate(**annotations))
+        return FilmWork.objects.values('id', 'title', 'description', 'creation_date', 'rating', 'type').annotate(**annotations)
 
     def render_to_response(self, context: dict, **response_kwargs):
         return JsonResponse(context)
@@ -51,5 +47,5 @@ class FilmWorkListApi(FilmWorkApiMixin, BaseListView):
 
 
 class FilmWorkDetailApi(FilmWorkApiMixin, BaseDetailView):
-    def get_context_data(self, *, object_list=None, **kwargs):
-        return self.get_queryset().get(id=self.kwargs.get('pk'))
+    def get_context_data(self, **kwargs):
+        return self.object

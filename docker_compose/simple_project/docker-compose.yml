@@ -10,9 +10,10 @@ services:
       - ./.env
     volumes:
       - static:/opt/app/static
+    restart: always
 
   nginx:
-    image: nginx:latest
+    image: nginx:alpine
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./configs:/etc/nginx/conf.d:ro
@@ -21,13 +22,22 @@ services:
       - service
     ports:
       - "80:80"
+    restart: always
 
   theatre-db:
-    image: postgres:latest
+    image: postgres:17.6-alpine
     env_file:
       - ./.env
     volumes:
       - ./database_dump.sql:/docker-entrypoint-initdb.d/init.sql
+      - theatre_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "${HEALTH_CHECK}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: always
 
 volumes:
   static:
+  theatre_db_data:
